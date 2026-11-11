@@ -14,7 +14,7 @@ def parser(commands):
     sub = root.add_subparsers(dest="explore_command", required=True)
     scan = sub.add_parser("scan")
     scan.add_argument("repository")
-    for name in ("show", "draft", "acknowledge", "history", "node", "review", "control", "context", "record", "attach-run", "continue", "discuss", "serve", "dsh-config", "dispatch"):
+    for name in ("show", "draft", "acknowledge", "history", "import-trajectory", "node", "review", "control", "context", "record", "attach-run", "continue", "discuss", "serve", "dsh-config", "dispatch"):
         p = sub.add_parser(name)
         p.add_argument("id")
         if name in {"node", "review", "control", "context", "record", "attach-run", "continue", "discuss"}:
@@ -28,6 +28,8 @@ def parser(commands):
             p.add_argument("--metrics")
             p.add_argument("--fetch", action="store_true", help="Fetch origin history into a separate controller-owned mirror")
             p.add_argument("--max-commits", type=int, default=0, help="0 imports all locally available refs")
+        elif name == "import-trajectory":
+            p.add_argument("--bundle", required=True, help="Privacy-reviewed trajectory JSON bundle")
         elif name == "review":
             p.add_argument("--comment", required=True)
             p.add_argument("--reviewer", required=True)
@@ -68,6 +70,8 @@ def execute(store, args):
         if args.max_commits < 0:
             raise HarnessError("max-commits cannot be negative")
         return e.history(store, args.id, args.metrics, args.max_commits, args.fetch)
+    if cmd == "import-trajectory":
+        return e.import_trajectory(store, args.id, args.bundle)
     if cmd == "node":
         return e.detail(store, args.id, args.node)
     if cmd == "review":

@@ -17,6 +17,10 @@
 
 已完成的 runtime 实验现在可以通过校验证据的 `explore attach-run` 进入探索树。参见
 [可信实验闭环](docs/trusted-experiment-closure.md)与[两类验证场景](docs/validation/trusted-closure-2026-11-11.md)。
+真实 agent/RSI 历史也可以通过隐私安全、逐 artifact 校验哈希的
+`explore import-trajectory` 进入归档层。[`subspace_cem` 真实 pilot](docs/real-agent-trajectory.md)
+保留了一次失败启动、修复、12 个运行、聚合 verdict 和停止决策，但不会把历史 GPU 记录
+冒充成 mih 已经重跑并验收的 trusted run。
 
 ## 把哪些事情控制住
 

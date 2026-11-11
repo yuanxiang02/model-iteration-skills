@@ -32,14 +32,21 @@ try {
   });
   const page = await browser.newPage({ viewport: { width: 1600, height: 1050 } });
   await page.goto(url);
-  await page.waitForSelector("g.node");
+  await page.locator("#tree-tab").click({ force: true });
+  await page.waitForSelector("g.node", { state: "attached" });
+  if (args.includes("--show-closed")) {
+    await page.locator("#show-closed").check();
+    await page.waitForTimeout(100);
+  }
   await page.screenshot({ path: join(output, "natural.png"), fullPage: true });
-  await page.locator('[data-layout="metric"]').click();
+  await page.locator('[data-layout="metric"]').click({ force: true });
   await page.screenshot({ path: join(output, "metric.png"), fullPage: true });
   const graph = await page.request.get(url + "/api/graph").then((response) => response.json());
   writeFileSync(join(output, "capture.json"), JSON.stringify({
     tree: value("--tree"), nodes: graph.nodes.length,
     trusted_nodes: graph.nodes.filter((node) => node.experiment_id).length,
+    archival_trajectory_nodes: graph.nodes.filter((node) => node.kind === "trajectory").length,
+    show_closed: args.includes("--show-closed"),
     screenshots: ["natural.png", "metric.png"], model_calls: 0,
   }, null, 2));
   console.log(JSON.stringify({ status: "passed", output, nodes: graph.nodes.length }, null, 2));

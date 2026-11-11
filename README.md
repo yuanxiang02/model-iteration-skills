@@ -81,6 +81,11 @@ the separately reviewed experiment runtime below.
 Completed runtime experiments can enter the graph through the evidence-verifying
 `explore attach-run` bridge. See the [trusted experiment closure](docs/trusted-experiment-closure.md)
 and its [two validation scenarios](docs/validation/trusted-closure-2026-11-11.md).
+Real agent/RSI histories can also enter through the privacy-safe,
+hash-pinned `explore import-trajectory` archival path. The
+[`subspace_cem` pilot](docs/real-agent-trajectory.md) preserves a failed launch,
+repair, 12 runs, aggregate verdict and stop decision without claiming that mih
+reran the historical GPU work.
 
 Coding agents can change training code, but a useful experiment also needs a stable evaluator, attributable outputs, recoverable execution, and an explicit acceptance decision.
 

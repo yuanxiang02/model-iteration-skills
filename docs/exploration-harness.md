@@ -78,6 +78,19 @@ metric stays unknown. A commit message is not treated as a score or hypothesis.
 Imported scores remain claims, not trusted runtime acceptance. Conflicting scores
 for one commit require a separate experiment node.
 
+Import a real agent/research execution lineage from a privacy-reviewed,
+hash-pinned JSON bundle:
+
+```bash
+PYTHONPATH=src python3 -m mih --state STATE explore import-trajectory \
+  TREE_ID --bundle trajectory.bundle.json
+```
+
+This retains proposal/contract/attempt/run/aggregate/verdict/decision ancestry and
+archives allowlisted Git artifacts, but labels the nodes archival rather than
+runtime-trusted. See the [real trajectory format, assurance boundary and
+`subspace_cem` pilot](real-agent-trajectory.md).
+
 Record a completed/failed/cancelled/inconclusive attempt with `explore record
 TREE_ID PARENT_ID --result result.json`. The result contains `commit`, `hypothesis`,
 `status`, the primary `metric` (or null), and exact current `protocol`. Code changes

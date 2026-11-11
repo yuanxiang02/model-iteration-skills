@@ -1,0 +1,12 @@
+{
+  "tree": "tree-d1d2fd4f12d20f7e",
+  "nodes": 21,
+  "trusted_nodes": 0,
+  "archival_trajectory_nodes": 20,
+  "show_closed": true,
+  "screenshots": [
+    "natural.png",
+    "metric.png"
+  ],
+  "model_calls": 0
+}

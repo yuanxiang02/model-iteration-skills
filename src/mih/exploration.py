@@ -4,6 +4,7 @@ This plane records research; it never upgrades imported scores to mih acceptance
 """
 
 import copy
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -14,6 +15,9 @@ from . import discovery as d
 from .storage import HarnessError, Store, canonical, digest, load, locked, now, save
 
 MAX_PATCH = 1024 * 1024
+MAX_TRAJECTORY_BUNDLE = 2 * 1024 * 1024
+MAX_TRAJECTORY_ARTIFACT = 2 * 1024 * 1024
+MAX_TRAJECTORY_TOTAL = 10 * 1024 * 1024
 
 
 def directory(store, identifier):
@@ -26,7 +30,7 @@ def directory(store, identifier):
 
 
 def node_path(path, identifier):
-    if not re.fullmatch(r"(?:git-[0-9a-f]{40,64}|run-[0-9a-f]{16}|source-[0-9a-f]{16})", identifier):
+    if not re.fullmatch(r"(?:git-[0-9a-f]{40,64}|run-[0-9a-f]{16}|source-[0-9a-f]{16}|trace-[0-9a-f]{16})", identifier):
         raise HarnessError("Invalid node ID")
     folder = path / "nodes" / identifier
     if not (folder / "node.json").is_file():
@@ -371,6 +375,186 @@ def record(store, identifier, parent_id, result_file):
         event(path, "result_recorded", node=node_id, parent=parent_id)
     auto_close(store, identifier, node_id)
     return detail(store, identifier, node_id)
+
+
+def import_trajectory(store, identifier, bundle_file):
+    """Import a hash-pinned archival agent/research trajectory.
+
+    This is deliberately a reported-evidence path, not a trusted runtime path.
+    Artifact bytes are read from the pinned Git revision rather than the working
+    tree, copied into controller state, and never upgraded to mih acceptance.
+    """
+    path = directory(store, identifier)
+    source = Path(bundle_file).expanduser().resolve()
+    if not source.is_file() or source.stat().st_size > MAX_TRAJECTORY_BUNDLE:
+        raise HarnessError("Trajectory bundle is missing or exceeds 2 MiB")
+    bundle = load(source)
+    if bundle.get("schema_version") != 1:
+        raise HarnessError("Trajectory bundle schema_version must be 1")
+    trajectory_id = bundle.get("trajectory_id")
+    if not isinstance(trajectory_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,79}", trajectory_id):
+        raise HarnessError("Trajectory ID must be a lowercase stable identifier")
+    forbidden = re.compile(r"(?:password|passwd|secret|token|cookie|credential|private_key|raw_(?:prompt|response|conversation))", re.I)
+
+    def check_private(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if forbidden.search(str(key)):
+                    raise HarnessError("Trajectory bundles cannot contain credentials or raw private conversations")
+                check_private(child)
+        elif isinstance(value, list):
+            for child in value:
+                check_private(child)
+
+    check_private(bundle)
+    source_spec = bundle.get("source")
+    if not isinstance(source_spec, dict) or not source_spec.get("revision"):
+        raise HarnessError("Trajectory source requires a pinned Git revision")
+    rows = bundle.get("events")
+    if not isinstance(rows, list) or not rows:
+        raise HarnessError("Trajectory bundle needs at least one event")
+    if len(rows) > 1000:
+        raise HarnessError("Trajectory bundle exceeds 1000 events")
+
+    with locked(path / "tree.lock"):
+        state, _, spec, boundary = revision(path)
+        repo = Path(state["repository"])
+        revision_hash = d.git(repo, "rev-parse", "--verify", str(source_spec["revision"]) + "^{commit}").decode().strip()
+        default_at = bundle.get("observed_at") or d.git(repo, "show", "-s", "--format=%aI", revision_hash).decode().strip()
+        if source_spec.get("repository") and Path(source_spec["repository"]).expanduser().resolve() != repo.resolve():
+            raise HarnessError("Trajectory repository differs from the research tree")
+        anchor = source_spec.get("anchor", revision_hash)
+        anchor_hash = d.git(repo, "rev-parse", "--verify", str(anchor) + "^{commit}").decode().strip()
+        anchor_id = "git-" + anchor_hash
+        if not (path / "nodes" / anchor_id / "node.json").is_file():
+            raise HarnessError("Trajectory anchor is not present in imported Git history")
+
+        event_ids = []
+        for row in rows:
+            event_id = row.get("id") if isinstance(row, dict) else None
+            if not isinstance(event_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,79}", event_id):
+                raise HarnessError("Every trajectory event needs a lowercase stable ID")
+            event_ids.append(event_id)
+        if len(event_ids) != len(set(event_ids)):
+            raise HarnessError("Trajectory event IDs must be unique")
+
+        artifact_bytes = {}
+        artifact_hashes = {}
+        total = 0
+        for row in rows:
+            artifacts = row.get("artifacts", [])
+            if not isinstance(artifacts, list):
+                raise HarnessError("Trajectory artifacts must be a list")
+            for artifact in artifacts:
+                if not isinstance(artifact, dict) or set(artifact) - {"path", "sha256", "role"}:
+                    raise HarnessError("Artifact references support path, sha256 and optional role")
+                name, expected = artifact.get("path"), artifact.get("sha256")
+                if not isinstance(name, str) or d.sensitive(name):
+                    raise HarnessError("Sensitive artifact paths cannot enter trajectory evidence")
+                # Validate traversal without depending on the mutable working tree.
+                if Path(name).is_absolute() or ".." in Path(name).parts or not name:
+                    raise HarnessError("Artifact paths must be repository-relative")
+                if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+                    raise HarnessError("Artifact references require a SHA-256 digest")
+                if name in artifact_hashes and artifact_hashes[name] != expected:
+                    raise HarnessError("Conflicting hashes for trajectory artifact: " + name)
+                if name not in artifact_bytes:
+                    content = d.git_bounded(repo, ["show", revision_hash + ":" + name], MAX_TRAJECTORY_ARTIFACT)
+                    if content is None:
+                        raise HarnessError("Trajectory artifact exceeds 2 MiB: " + name)
+                    actual = hashlib.sha256(content).hexdigest()
+                    if actual != expected:
+                        raise HarnessError("Trajectory artifact hash mismatch: " + name)
+                    total += len(content)
+                    if total > MAX_TRAJECTORY_TOTAL:
+                        raise HarnessError("Trajectory artifacts exceed 10 MiB total")
+                    artifact_bytes[name] = content
+                    artifact_hashes[name] = actual
+
+        archive_id = "trajectory-" + d.fingerprint({"trajectory_id": trajectory_id, "revision": revision_hash})[:16]
+        archive = path / "trajectories" / archive_id
+        archive.mkdir(parents=True, exist_ok=True)
+        bundle_hash = digest(source)
+        archived_bundle = archive / "bundle.json"
+        if archived_bundle.exists() and digest(archived_bundle) != bundle_hash:
+            raise HarnessError("Trajectory ID and revision already exist with different evidence")
+        if not archived_bundle.exists():
+            archived_bundle.write_bytes(source.read_bytes())
+        for name, content in artifact_bytes.items():
+            target = archive / "artifacts" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest() != artifact_hashes[name]:
+                raise HarnessError("Archived trajectory artifact changed: " + name)
+            if not target.exists():
+                target.write_bytes(content)
+
+        mapping = {event_id: "trace-" + d.fingerprint(trajectory_id + ":" + event_id)[:16] for event_id in event_ids}
+        imported = []
+        seen = set()
+        for row in rows:
+            event_id = row["id"]
+            kind = row.get("kind")
+            if kind not in {"proposal", "contract", "attempt", "run", "aggregate", "review", "verdict", "decision"}:
+                raise HarnessError("Unsupported trajectory event kind: " + str(kind))
+            title = row.get("title")
+            if not isinstance(title, str) or not title.strip():
+                raise HarnessError("Every trajectory event needs a title")
+            parent_names = row.get("parents", [])
+            if not isinstance(parent_names, list):
+                raise HarnessError("Trajectory event parents must be a list")
+            parents = []
+            for parent in parent_names:
+                if parent == "git:anchor":
+                    parents.append(anchor_id)
+                elif parent in mapping and parent in seen:
+                    parents.append(mapping[parent])
+                else:
+                    raise HarnessError("Trajectory parents must reference the anchor or an earlier event")
+            if not parents:
+                parents = [anchor_id]
+            metric = row.get("metric")
+            if metric is not None:
+                _validate_metric(metric)
+                if {key: metric[key] for key in ("name", "direction")} != spec["metric"]:
+                    raise HarnessError("Trajectory metric differs from the reviewed primary metric")
+            status = row.get("status", "recorded")
+            if status not in {"planned", "running", "completed", "failed", "cancelled", "inconclusive", "unsupported", "stopped", "recorded"}:
+                raise HarnessError("Unsupported trajectory event status")
+            node_id = mapping[event_id]
+            evidence_artifacts = [{**artifact, "archived": str(archive / "artifacts" / artifact["path"])} for artifact in row.get("artifacts", [])]
+            evidence = {"source": str(archived_bundle), "sha256": bundle_hash, "trajectory_id": trajectory_id,
+                        "event_id": event_id, "artifacts": evidence_artifacts,
+                        "assurance": "hash-verified archival trajectory from pinned Git; runtime was not executed or accepted by mih"}
+            node = {"id": node_id, "kind": "trajectory", "trajectory_kind": kind, "title": title,
+                    "hypothesis": row.get("hypothesis", ""), "commit": anchor_hash, "parents": parents,
+                    "at": row.get("at", default_at), "changed_files": [artifact["path"] for artifact in row.get("artifacts", [])],
+                    "metric": metric, "status": status, "protocol": "archival:" + bundle.get("protocol", bundle_hash),
+                    "key": bool(row.get("key", False)), "patch_note": "Archival event; inspect pinned evidence rather than treating this as a code diff.",
+                    "control": {"state": "open", "by": "trajectory_import", "reason": "Reported historical trajectory; not mih runtime acceptance"},
+                    "evidence": [evidence], "trajectory": {"id": trajectory_id, "event": event_id,
+                    "metadata": row.get("metadata", {}), "revision": revision_hash, "boundary_at_import": boundary},
+                    "source_repository": str(repo)}
+            existing = path / "nodes" / node_id / "node.json"
+            if existing.is_file():
+                old = load(existing)
+                immutable = ("id", "kind", "trajectory_kind", "title", "hypothesis", "commit", "parents", "at",
+                             "changed_files", "metric", "status", "protocol", "patch_note", "evidence", "trajectory",
+                             "source_repository", "patch_sha256")
+                expected = {**node, "patch_sha256": old.get("patch_sha256")}
+                if canonical({key: old.get(key) for key in immutable}) != canonical({key: expected.get(key) for key in immutable}):
+                    raise HarnessError("Trajectory event conflicts with previously imported evidence")
+            else:
+                _save_node(path, node)
+                imported.append(node_id)
+            seen.add(event_id)
+        save(archive / "import.json", {"schema_version": 1, "trajectory_id": trajectory_id, "revision": revision_hash,
+             "anchor": anchor_hash, "bundle_sha256": bundle_hash, "artifact_sha256": artifact_hashes,
+             "event_nodes": mapping, "assurance": "archival_reported_not_runtime_trusted"})
+        event(path, "trajectory_imported", trajectory=trajectory_id, revision=revision_hash,
+              bundle_sha256=bundle_hash, imported=imported, nodes=list(mapping.values()))
+    return {"trajectory_id": trajectory_id, "archive": str(archive), "bundle_sha256": bundle_hash,
+            "revision": revision_hash, "anchor": anchor_hash, "nodes": list(mapping.values()), "new_nodes": imported,
+            "assurance": "hash-verified archival trajectory; not mih runtime acceptance"}
 
 
 def attach_experiment(store, identifier, parent_id, experiment_id):

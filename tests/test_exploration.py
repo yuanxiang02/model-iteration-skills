@@ -1,6 +1,7 @@
 """Synthetic projects only; all operator acknowledgments here are simulated."""
 
 import json
+import hashlib
 from pathlib import Path
 import platform
 import subprocess
@@ -303,6 +304,67 @@ class ResearchTree(unittest.TestCase):
         self.assertEqual(result["status"], "completed")
         self.assertEqual(result["workspace"], str(source.resolve()))
         self.assertFalse((source / ".git").exists())
+
+    def test_hash_pinned_archival_trajectory_is_idempotent_and_not_trusted(self):
+        spec = e.graph(self.store, self.identifier)["spec"]
+        spec.update(task="Archived agent trajectory", metric={"name": "accuracy_delta", "direction": "maximize"})
+        for row in spec["files"]:
+            row["access"] = "fixed"
+        e.revise(self.store, self.identifier, spec)
+        content = subprocess.run(
+            ["git", "-C", str(self.repo), "show", self.baseline + ":train.py"],
+            check=True, capture_output=True,
+        ).stdout
+        sha256 = hashlib.sha256(content).hexdigest()
+        bundle = self.root / "trajectory.json"
+        save(bundle, {
+            "schema_version": 1,
+            "trajectory_id": "fixture-agent-run",
+            "protocol": "frozen-fixture-v1",
+            "source": {"repository": str(self.repo), "revision": self.baseline, "anchor": self.baseline},
+            "events": [
+                {"id": "proposal", "kind": "proposal", "title": "Try the controlled change",
+                 "hypothesis": "The controlled change improves accuracy", "parents": ["git:anchor"],
+                 "status": "planned", "artifacts": [{"path": "train.py", "sha256": sha256, "role": "source"}]},
+                {"id": "aggregate", "kind": "aggregate", "title": "Aggregate fixed evaluation",
+                 "parents": ["proposal"], "status": "completed",
+                 "metric": {"name": "accuracy_delta", "direction": "maximize", "value": .25},
+                 "artifacts": [{"path": "train.py", "sha256": sha256, "role": "source"}]},
+            ],
+        })
+        result = e.import_trajectory(self.store, self.identifier, bundle)
+        self.assertEqual(len(result["new_nodes"]), 2)
+        self.assertIn("not mih runtime acceptance", result["assurance"])
+        again = e.import_trajectory(self.store, self.identifier, bundle)
+        self.assertEqual(again["new_nodes"], [])
+        node = e.detail(self.store, self.identifier, result["nodes"][1])
+        self.assertEqual(node["trajectory_kind"], "aggregate")
+        self.assertNotIn("experiment_id", node)
+        self.assertTrue(Path(node["evidence"][0]["artifacts"][0]["archived"]).is_file())
+        e.review(self.store, self.identifier, node["id"], "Archive reviewed", "SIMULATED TEST", "changes_requested", True)
+        e.control(self.store, self.identifier, node["id"], "close", "Preserve negative result", actor="agent")
+        self.assertEqual(e.import_trajectory(self.store, self.identifier, bundle)["new_nodes"], [])
+        self.assertFalse(e.summary(self.store, self.identifier)["approved"])
+
+    def test_trajectory_rejects_bad_hash_and_private_conversation(self):
+        spec = e.graph(self.store, self.identifier)["spec"]
+        spec.update(task="Archived agent trajectory", metric={"name": "accuracy", "direction": "maximize"})
+        for row in spec["files"]:
+            row["access"] = "fixed"
+        e.revise(self.store, self.identifier, spec)
+        bundle = self.root / "bad-trajectory.json"
+        base = {"schema_version": 1, "trajectory_id": "bad-fixture",
+                "source": {"repository": str(self.repo), "revision": self.baseline},
+                "events": [{"id": "run", "kind": "run", "title": "Reported run", "status": "completed",
+                            "artifacts": [{"path": "train.py", "sha256": "0" * 64}]}]}
+        save(bundle, base)
+        with self.assertRaisesRegex(HarnessError, "hash mismatch"):
+            e.import_trajectory(self.store, self.identifier, bundle)
+        base["events"][0]["artifacts"] = []
+        base["events"][0]["raw_prompt"] = "private agent transcript"
+        save(bundle, base)
+        with self.assertRaisesRegex(HarnessError, "private conversations"):
+            e.import_trajectory(self.store, self.identifier, bundle)
 
 
 class TrustedExperimentBridge(unittest.TestCase):
