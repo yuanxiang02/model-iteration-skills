@@ -66,6 +66,22 @@ See [the precise controls and compatibility boundary](docs/controllability.md).
 
 ## What it does
 
+### Development preview: file-aligned research explorer
+
+The new `mih explore` commands assess a project's actual file structure, draft
+code/data boundaries for user discussion, and build a reviewable graph from Git
+history and sourced metric records. The local viewer supports metric-height and
+bottom-up lineage layouts, code diffs, key-node reviews, ghosted closed branches,
+operator enable/disable, and Markdown/JSON discussion packets. An external dsh CLI
+plugin connects node discussions without embedding an LLM client. See the
+[setup, demo, authority boundaries and validation guide](docs/exploration-harness.md).
+This preview covers assessment and research handoffs; model training still uses
+the separately reviewed experiment runtime below.
+
+Completed runtime experiments can enter the graph through the evidence-verifying
+`explore attach-run` bridge. See the [trusted experiment closure](docs/trusted-experiment-closure.md)
+and its [two validation scenarios](docs/validation/trusted-closure-2026-11-11.md).
+
 Coding agents can change training code, but a useful experiment also needs a stable evaluator, attributable outputs, recoverable execution, and an explicit acceptance decision.
 
 The execution runtime manages that experiment lifecycle around your existing training program:
@@ -317,7 +333,7 @@ Failed and inconclusive runs stay in the archive. Cleanup, checkpoints, and loca
 
 The calling agent is not automatically sandboxed. Same-user unrestricted access or a different state root is outside the approval gate's authority. The macOS backend does not hide every host file and is not a production security guarantee.
 
-The prototype has small-example file/budget limits and does not provide full dependency snapshots, remote/Slurm execution, arbitrary experiment ancestry, automatic baseline ratcheting, automatic agent callbacks, or a GUI/MCP server. It does not yet provide general non-inferiority or multi-objective acceptance policies.
+The experiment runtime has small-example file/budget limits and does not provide full dependency snapshots, remote/Slurm execution, arbitrary execution ancestry, automatic baseline ratcheting, automatic agent callbacks, or an MCP server. The development explorer adds a local research-graph UI and explicit dsh discussion dispatch. General non-inferiority and multi-objective acceptance policies remain unimplemented.
 
 Current caps: each prediction-input, reference, or evaluator file is at most 10 MiB; the monitored output budget defaults to 10 MiB and can be configured up to 100 MiB; command timeouts range from 1 to 3,600 seconds, and whole-experiment wall limits from 1 to 86,400 seconds. These controls are not a strict aggregate memory/compute limit. Larger training projects need further backend/artifact support.
 
@@ -353,7 +369,7 @@ end-to-end LLM behavior remains unvalidated. The core requires none of these add
 python -m unittest discover -s tests -v
 ```
 
-The suite contains **66 behavior tests**. CI runs on Linux/Python 3.9 and 3.12 and macOS/Python 3.12. Tests cover source/evaluator protection, prediction validity, timeouts/cancellation, recovery, reviewed project gates, policy drift, explicit promotion, candidate/active limits, pause/resume, total timeouts, skill installation, packet checks and the agent-validation oracle. CI agent sessions are explicit replay fixtures; they cannot claim a real-agent pass.
+The suite contains **84 behavior tests**. CI runs on Linux/Python 3.9 and 3.12 and macOS/Python 3.12. Tests cover source/evaluator protection, prediction validity, timeouts/cancellation, recovery, reviewed project gates, policy drift, explicit promotion, candidate/active limits, pause/resume, total timeouts, skill installation, packet checks, the agent-validation oracle, and exploration boundaries, evidence, branch controls and CLI dispatch. CI agent sessions are explicit replay fixtures; they cannot claim a real-agent pass.
 
 ### Real agent verification
 

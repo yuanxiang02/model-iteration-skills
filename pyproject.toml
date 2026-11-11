@@ -19,3 +19,6 @@ mih = "mih.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+mih = ["explorer_static/*", "dsh_plugin.mjs"]

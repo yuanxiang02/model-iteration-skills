@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 from . import __version__
-from . import core, onboarding, controls, agent_validation
+from . import core, onboarding, controls, agent_validation, explorer_cli
 from .storage import HarnessError, Store, load
 
 
@@ -15,6 +15,7 @@ def main(argv=None):
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("--state", default=".mih", help="Harness state directory; keep it outside the training repository")
     commands = parser.add_subparsers(dest="command", required=True)
+    explorer_cli.parser(commands)
     check = commands.add_parser("validate", help="Validate and resolve a contract without running training")
     check.add_argument("contract")
     create = commands.add_parser("create", help="Freeze a contract and create baseline/candidate worktrees")
@@ -92,7 +93,14 @@ def main(argv=None):
         item.add_argument("directory")
     args = parser.parse_args(argv)
     try:
-        if args.command == "agent-check":
+        if args.command == "explore":
+            result = explorer_cli.execute(Store(args.state), args)
+            if result is None:
+                return
+            if args.explore_command == "context" and args.format == "markdown":
+                print(result)
+                return
+        elif args.command == "agent-check":
             if args.agent_command == "prepare":
                 result = agent_validation.prepare(args.directory, args.scenario or agent_validation.SCENARIOS)
             elif args.agent_command == "start":

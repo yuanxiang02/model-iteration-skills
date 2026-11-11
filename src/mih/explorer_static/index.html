@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="mih-token" content="__CSRF_TOKEN__" />
+    <link rel="icon" href="data:," />
+    <title>Model Atlas · 模型探索</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"
+          ><svg viewBox="0 0 40 40">
+            <path
+              d="M20 35 Q15 24 24 9 M20 25 Q6 24 8 12 Q23 10 20 25 M21 20 Q34 18 33 5 Q21 4 21 20"
+            /></svg
+        ></span>
+        <div>MODEL ATLAS<small>让研究生根，让进展可循</small></div>
+      </div>
+      <nav>
+        <button id="tree-tab" class="active">02 探索树</button
+        ><button id="alignment-tab">01 文件对齐</button>
+      </nav>
+      <div class="live"><i></i><span id="connection">连接中</span></div>
+    </header>
+    <div id="fixture" hidden>
+      合成演示夹具 · 指标为构造数据 · 边界确认仅为模拟 · 没有训练模型
+    </div>
+    <main>
+      <aside class="rail">
+        <div class="eyebrow">PROJECT</div>
+        <h2 id="project-name">加载中</h2>
+        <p id="task-name" class="muted"></p>
+        <button id="boundary-status" class="boundary-status">
+          查看文件边界
+        </button>
+        <div class="rail-heading">文件结构 <span id="file-count"></span></div>
+        <input id="file-search" placeholder="搜索路径…" aria-label="搜索文件" />
+        <div id="file-tree"></div>
+        <div class="rail-footer">
+          <span class="dot mutable"></span>可修改
+          <span class="dot fixed"></span>固定
+          <span class="dot discuss"></span>待讨论
+        </div>
+      </aside>
+      <section id="canvas-section">
+        <div class="canvas-heading">
+          <div>
+            <div class="eyebrow">A LIVING RECORD OF RESEARCH</div>
+            <h1>一棵持续生长的研究树<span id="node-count"></span></h1>
+            <p class="muted" id="graph-caption">
+              节点保留真实代码继承；高度表示可比较的主指标。
+            </p>
+          </div>
+          <button id="align-callout">审查项目边界 ↗</button>
+        </div>
+        <div class="toolbar">
+          <div class="segmented">
+            <button data-layout="natural" class="active">自然树</button
+            ><button data-layout="metric">主指标高度</button
+            ><button data-layout="lineage">继承谱系</button
+            ><button data-layout="files">文件分组</button>
+          </div>
+          <span id="metric-label"></span
+          ><label
+            ><input
+              id="show-closed"
+              type="checkbox"
+              checked
+            />显示关闭方向</label
+          >
+        </div>
+        <div id="graph-wrap">
+          <svg id="graph" role="img" aria-label="模型探索树"></svg>
+          <div id="empty" hidden>
+            暂无节点。导入 Git 历史，或先为项目创建 Git 版本。
+          </div>
+          <div class="axis-caption" id="axis-caption">更高的主指标 ↑</div>
+          <div class="graph-tools">
+            <button id="zoom-in" aria-label="放大">＋</button
+            ><button id="zoom-out" aria-label="缩小">−</button
+            ><button id="fit">适应画布</button>
+          </div>
+          <div class="legend">
+            <span><i class="legend-solid"></i>可探索</span
+            ><span><i class="legend-ghost"></i>休眠 / 关闭</span
+            ><span><i class="legend-key"></i>关键节点</span>
+          </div>
+        </div>
+        <div class="bottom-strip">
+          <div>
+            <small>最优可比记录</small><strong id="best-score">—</strong>
+          </div>
+          <div><small>开放节点</small><strong id="open-count">—</strong></div>
+          <div>
+            <small>待审关键节点</small><strong id="review-count">—</strong>
+          </div>
+          <div>
+            <small>接续方式</small><strong id="dispatch-mode">—</strong>
+          </div>
+        </div>
+      </section>
+      <aside id="inspector">
+        <div class="eyebrow">NODE REVIEW</div>
+        <div id="node-detail">
+          <div class="select-prompt">
+            ◉
+            <h3>选择一个节点</h3>
+            <p>查看假设、代码修改和证据，<br />或从这里开启一段讨论。</p>
+          </div>
+        </div>
+        <div id="discussion-drop">↗ 将节点文档拖到这里，开启讨论</div>
+      </aside>
+      <section id="alignment" hidden>
+        <div class="alignment-head">
+          <div class="eyebrow">01 / PROJECT DECOUPLING</div>
+          <h1>先对齐文件，再开始探索。</h1>
+          <p class="muted">
+            路径与静态分析是建议。逐项讨论代码和数据边界；扫描不会改写项目。
+          </p>
+        </div>
+        <div class="alignment-fields">
+          <label
+            >任务说明<input
+              id="task-input"
+              placeholder="这个项目在解决什么任务？" /></label
+          ><label
+            >主指标<input
+              id="metric-input"
+              placeholder="例如 accuracy / NLL" /></label
+          ><label
+            >方向<select id="direction-input">
+              <option value="maximize">越高越好</option>
+              <option value="minimize">越低越好</option>
+            </select></label
+          >
+        </div>
+        <div class="policy-fields">
+          <label
+            >无提升轮数<input
+              id="patience-input"
+              type="number"
+              min="1" /></label
+          ><label
+            >最小提升<input
+              id="effect-input"
+              type="number"
+              min="0"
+              step="any" /></label
+          ><label
+            >接续次数上限<input id="budget-input" type="number" min="1"
+          /></label>
+        </div>
+        <details open>
+          <summary>待讨论的问题与解耦线索</summary>
+          <div id="questions"></div>
+          <label
+            >讨论结论<textarea
+              id="discussion-input"
+              placeholder="记录拆分方案、数据来源、需要补充的外部数据与用户决定…"
+            ></textarea>
+          </label>
+        </details>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>仓库路径</th>
+                <th>职责</th>
+                <th>修改权限</th>
+                <th>判断依据 / 讨论结论</th>
+              </tr>
+            </thead>
+            <tbody id="boundary-rows"></tbody>
+          </table>
+        </div>
+        <div class="alignment-actions">
+          <button id="save-boundaries" class="primary">保存新草案</button
+          ><input
+            id="reviewer-input"
+            placeholder="用户 / 审查人姓名"
+            aria-label="审查人姓名"
+          /><button id="ack-boundaries">我已审查并确认此版本</button
+          ><span id="revision-label"></span>
+        </div>
+        <pre id="boundary-digest"></pre>
+        <p class="muted">
+          边界确认只允许按节点接续研究讨论。训练和代码应用继续使用独立的实验授权。
+        </p>
+      </section>
+    </main>
+    <div id="toast" role="status" hidden></div>
+    <dialog id="discussion-dialog">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="关闭">×</button>
+      </form>
+      <div class="eyebrow">NODE CONTEXT</div>
+      <h2>从这个节点继续讨论</h2>
+      <div id="drop-zone">拖入节点文档，或使用当前选中节点</div>
+      <pre id="discussion-context"></pre>
+      <textarea
+        id="discussion-question"
+        placeholder="这个方向存在什么问题？下一步想验证什么？"
+      ></textarea
+      ><button id="send-discussion" class="primary">加入 dsh 接续队列</button>
+      <div id="discussion-output"></div>
+    </dialog>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

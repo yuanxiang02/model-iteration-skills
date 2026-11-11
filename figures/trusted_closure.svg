@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680" font-family="Arial, PingFang SC, sans-serif">
+  <rect width="1200" height="680" fill="#FCFCF9"/>
+  <defs>
+    <marker id="arrow-default" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#555555"/>
+    </marker>
+    <marker id="arrow-c0" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#E8F1F8"/>
+    </marker>
+    <marker id="arrow-c1" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#EDF6EC"/>
+    </marker>
+    <marker id="arrow-c2" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#FFF4DD"/>
+    </marker>
+    <marker id="arrow-c3" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 8 4, 0 8" fill="#F8E8E8"/>
+    </marker>
+  </defs>
+  <rect x="23.0" y="62.0" width="1109.0" height="211.0" fill="#F6F8F7" stroke="#CAD4D0" stroke-width="1" rx="8"/>
+  <text x="31.0" y="78.0" font-size="13" fill="#999999" font-weight="bold">Existing evidence path</text>
+  <rect x="23.0" y="425.0" width="639.0" height="120.0" fill="#F7F6F1" stroke="#D8D1BE" stroke-width="1" rx="8"/>
+  <text x="31.0" y="441.0" font-size="13" fill="#999999" font-weight="bold">Trusted runtime path</text>
+  <rect x="660.5" y="338.0" width="479.0" height="294.0" fill="#F4F8F3" stroke="#C4D5C1" stroke-width="1" rx="8"/>
+  <text x="668.5" y="354.0" font-size="13" fill="#999999" font-weight="bold">Research tree projection</text>
+  <path d="M 225.0,165.0 L 280.0,165.0" stroke="#58758A" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="234.1" y="147.0" width="36.8" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="252.5" y="159.0" font-size="12" fill="#777777" text-anchor="middle">scan</text>
+  <path d="M 440.0,165.0 L 490.0,165.0" stroke="#58758A" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="435.8" y="147.0" width="58.4" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="465.0" y="159.0" font-size="12" fill="#777777" text-anchor="middle">seed 17</text>
+  <path d="M 680.0,165.0 L 720.0,165.0" stroke="#9A742F" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="674.4" y="147.0" width="51.2" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="700.0" y="159.0" font-size="12" fill="#777777" text-anchor="middle">review</text>
+  <path d="M 842.6,153.8 L 940.0,133.1" stroke="#4F8A55" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="869.3" y="125.4" width="44.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="891.3" y="137.4" font-size="12" fill="#777777" text-anchor="middle">有证据</text>
+  <path d="M 841.3,177.0 L 940.0,200.1" stroke="#A95858" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="854.3" y="170.6" width="72.8" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="890.7" y="182.6" font-size="12" fill="#777777" text-anchor="middle">no metric</text>
+  <path d="M 225.0,485.0 L 270.0,485.0" stroke="#58758A" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="230.3" y="467.0" width="34.4" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="247.5" y="479.0" font-size="12" fill="#777777" text-anchor="middle">3 组</text>
+  <path d="M 450.0,485.0 L 490.0,485.0" stroke="#9A742F" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="442.0" y="467.0" width="56.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="470.0" y="479.0" font-size="12" fill="#777777" text-anchor="middle">终态证据</text>
+  <path d="M 640.0,485.0 L 682.5,485.0" stroke="#4F8A55" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="633.2" y="467.0" width="56.0" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="661.2" y="479.0" font-size="12" fill="#777777" text-anchor="middle">可信节点</text>
+  <path d="M 837.5,459.2 L 942.5,424.2" stroke="#3F7F47" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="835.6" y="423.7" width="108.8" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="890.0" y="435.7" font-size="12" fill="#777777" text-anchor="middle">verified patch</text>
+  <path d="M 837.5,485.0 L 942.5,485.0" stroke="#A34848" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="835.6" y="467.0" width="108.8" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="890.0" y="479.0" font-size="12" fill="#777777" text-anchor="middle">verified patch</text>
+  <path d="M 837.5,510.8 L 942.5,545.8" stroke="#A47B27" stroke-width="2" fill="none" marker-end="url(#arrow-default)"/>
+  <rect x="835.6" y="510.3" width="108.8" height="16" fill="#FFFFFF" rx="3" opacity="0.85"/>
+  <text x="890.0" y="522.3" font-size="12" fill="#777777" text-anchor="middle">verified patch</text>
+  <rect x="45.0" y="127.0" width="180.0" height="76.0" fill="#E8F1F8" stroke="#4B7898" stroke-width="2" rx="8"/>
+  <text x="135.0" y="161.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">已有 Git 仓库</text>
+  <text x="135.0" y="178.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">指标 + result 记录</text>
+  <rect x="280.0" y="132.5" width="160.0" height="65.0" fill="#E8F1F8" stroke="#4B7898" stroke-width="2" rx="8"/>
+  <text x="360.0" y="161.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">重建 9 节点树</text>
+  <text x="360.0" y="178.8" font-size="12" fill="#888888" text-anchor="middle">6 Git + 3 reported</text>
+  <rect x="490.0" y="127.0" width="190.0" height="76.0" fill="#FFF4DD" stroke="#B9852C" stroke-width="2" rx="8"/>
+  <text x="585.0" y="161.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">随机抽取合格节点</text>
+  <text x="585.0" y="178.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">记录讨论与 review</text>
+  <polygon points="790.0,120.0 860.0,165.0 790.0,210.0 720.0,165.0" fill="#FFF4DD" stroke="#B9852C" stroke-width="2"/>
+  <text x="790.0" y="170.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">讨论结论</text>
+  <rect x="940.0" y="84.0" width="170.0" height="62.0" fill="#EDF6EC" stroke="#4F8A55" stroke-width="2" rx="8"/>
+  <text x="1025.0" y="111.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">继续迭代</text>
+  <text x="1025.0" y="128.8" font-size="12" fill="#888888" text-anchor="middle">隔离 worktree</text>
+  <rect x="940.0" y="189.0" width="170.0" height="62.0" fill="#F8E8E8" stroke="#A95858" stroke-width="2" rx="8"/>
+  <text x="1025.0" y="216.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Disable 分支</text>
+  <text x="1025.0" y="233.8" font-size="12" fill="#888888" text-anchor="middle">保留记录</text>
+  <rect x="45.0" y="447.0" width="180.0" height="76.0" fill="#E8F1F8" stroke="#4B7898" stroke-width="2" rx="8"/>
+  <text x="135.0" y="473.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">依赖零第三方的</text>
+  <text x="135.0" y="490.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Tiny NLP 训练</text>
+  <text x="135.0" y="507.2" font-size="12" fill="#888888" text-anchor="middle">Mac CPU · 5 paired seeds</text>
+  <rect x="270.0" y="447.0" width="180.0" height="76.0" fill="#FFF4DD" stroke="#B9852C" stroke-width="2" rx="8"/>
+  <text x="360.0" y="481.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">固定 evaluator</text>
+  <text x="360.0" y="498.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">paired bootstrap</text>
+  <rect x="490.0" y="454.0" width="150.0" height="62.0" fill="#EDF6EC" stroke="#4F8A55" stroke-width="2" rx="8"/>
+  <text x="565.0" y="481.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">attach-run</text>
+  <text x="565.0" y="498.8" font-size="12" fill="#888888" text-anchor="middle">复核 hashes / scope</text>
+  <rect x="682.5" y="449.0" width="155.0" height="72.0" fill="#E8F1F8" stroke="#4B7898" stroke-width="2" rx="8"/>
+  <text x="760.0" y="481.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Baseline</text>
+  <text x="760.0" y="498.8" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">accuracy 0.50</text>
+  <rect x="942.5" y="360.0" width="175.0" height="70.0" fill="#DDEFD9" stroke="#3F7F47" stroke-width="2" rx="8"/>
+  <text x="1030.0" y="383.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Accepted</text>
+  <text x="1030.0" y="400.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">0.50 → 1.00</text>
+  <text x="1030.0" y="417.2" font-size="12" fill="#888888" text-anchor="middle">bigram</text>
+  <rect x="942.5" y="450.0" width="175.0" height="70.0" fill="#F3DADA" stroke="#A34848" stroke-width="2" rx="8"/>
+  <text x="1030.0" y="473.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Rejected</text>
+  <text x="1030.0" y="490.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">0.50 → 0.00</text>
+  <text x="1030.0" y="507.2" font-size="12" fill="#888888" text-anchor="middle">anti-bigram · disabled</text>
+  <rect x="942.5" y="540.0" width="175.0" height="70.0" fill="#F7ECD2" stroke="#A47B27" stroke-width="2" rx="8"/>
+  <text x="1030.0" y="563.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">Inconclusive</text>
+  <text x="1030.0" y="580.2" font-size="15" fill="#333333" text-anchor="middle" font-weight="bold">0.50 → 0.50</text>
+  <text x="1030.0" y="597.2" font-size="12" fill="#888888" text-anchor="middle">alpha 1.0 → 2.0</text>
+  <text x="55.0" y="45.0" font-size="22" fill="#203040" text-anchor="start">场景 1 · 既有仓库与记录 → 可讨论的研究树</text>
+  <text x="55.0" y="345.0" font-size="22" fill="#203040" text-anchor="start">场景 2 · Mac CPU 微型 NLP → 可信实验树</text>
+  <text x="600.0" y="655.0" font-size="14" fill="#6B5C48" text-anchor="middle">所有 accepted 均为 development evidence，不等同于独立科学确认</text>
+</svg>

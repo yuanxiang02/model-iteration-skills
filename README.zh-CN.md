@@ -8,6 +8,16 @@
 
 > **v0.4.0，本地受控迭代。** 核心 skill 引导 Codex，`mih` 执行内核落实实验门禁；现已通过宿主驱动的 agent 验证链路检查真实调用与结果。调研、查新和多 agent review 是可选辅助模块。参见[控制机制](docs/controllability.md)与[平台边界](#支持平台与边界)。
 
+**开发预览：基于 dsh CLI 的文件对齐与探索树。** `mih explore` 读取实际项目文件，
+生成代码与数据边界草案供用户讨论，并从 Git 历史及有来源的指标记录建立节点。
+本地界面支持主指标高度、从下向上的谱系、代码 diff、关键节点 review、分支关闭与
+启用/禁用，以及 Markdown/JSON 节点文档。可通过外部 dsh CLI 插件接续只读讨论。
+详见[操作、演示与验证说明](docs/exploration-harness.md)。该预览覆盖解耦评估和研究交接，
+真实训练仍使用独立确认的实验协议。
+
+已完成的 runtime 实验现在可以通过校验证据的 `explore attach-run` 进入探索树。参见
+[可信实验闭环](docs/trusted-experiment-closure.md)与[两类验证场景](docs/validation/trusted-closure-2026-11-11.md)。
+
 ## 把哪些事情控制住
 
 | 问题 | 控制方式 |
@@ -310,7 +320,7 @@ STATE/
 
 调用方 agent 本身没有被自动隔离。拥有同一用户无限制权限的进程，或另一个 state 根目录，不在本地确认门禁的权限边界内。macOS 后端也不会隐藏所有宿主文件，不构成生产级安全保证。
 
-原型仍有面向小示例的文件和预算限制，尚无完整依赖环境快照、远程/Slurm 执行、任意实验谱系、自动推进 baseline、自动唤醒 agent 或 GUI/MCP server。通用非劣效和多目标验收也尚未实现。
+实验运行时仍有面向小示例的文件和预算限制，尚无完整依赖环境快照、远程/Slurm 执行、任意执行谱系、自动推进 baseline、自动唤醒 agent 或 MCP server。开发预览增加了本地研究图界面及显式 dsh 讨论派发。通用非劣效和多目标验收尚未实现。
 
 当前上限：预测输入、参考答案和 evaluator 文件各不超过 10 MiB；受监控的输出预算默认 10 MiB，最多可设为 100 MiB；每条命令超时可设为 1～3,600 秒，整个实验时限为 1～86,400 秒。这些控制并不构成严格的总内存/总算力限制；较大的训练项目仍需要后续后端与产物管理支持。
 
@@ -343,7 +353,7 @@ python3 scripts/install_skills.py --with-addons
 python -m unittest discover -s tests -v
 ```
 
-目前有 **66 项行为测试**。CI 覆盖 Linux/Python 3.9、3.12 和 macOS/Python 3.12，包括源码/evaluator 保护、预测有效性、超时/取消、恢复、项目规范门禁、协议漂移、显式晋级、候选/活动上限、暂停恢复、总时限、skill 安装、交接检查和 agent 验证器。CI 中的 agent 会话明确标为回放 fixture，不能被报告为真实 agent 验证。
+目前有 **84 项行为测试**。CI 覆盖 Linux/Python 3.9、3.12 和 macOS/Python 3.12，包括源码/evaluator 保护、预测有效性、超时/取消、恢复、项目规范门禁、协议漂移、显式晋级、候选/活动上限、暂停恢复、总时限、skill 安装、交接检查、agent 验证器，以及探索边界、代码证据、分支控制和 CLI 派发。CI 中的 agent 会话明确标为回放 fixture，不能被报告为真实 agent 验证。
 
 ### 真实 agent 验证
 
