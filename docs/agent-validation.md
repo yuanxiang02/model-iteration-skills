@@ -62,6 +62,14 @@ workspace sandbox otherwise propagates to mih's detached worker and blocks its
 process-identity check; the recorded mih gateway remains the validation command
 boundary. This is explicitly not a hostile-agent security boundary.
 
+`integrations/deepseek/run_task.py` is the thinner general dispatch primitive for
+an operator-supplied prompt and already reviewed project. It records the same raw
+events, fresh session ID, final response, usage and key scan, but deliberately has
+no approval, budget or promotion API. Its default is `workspace-write`; a macOS
+task that submits a detached mih worker must explicitly select
+`danger-full-access` and rely on the reviewed mih contract plus retained DSH
+events as cooperative controls. Use a separate fresh invocation for result review.
+
 Preparation requires this source checkout (including `skills/`), normally with
 the runtime installed editably. `start` writes a task; it does not itself launch
 an agent. Host dispatch and capture of the actual returned response remain explicit.

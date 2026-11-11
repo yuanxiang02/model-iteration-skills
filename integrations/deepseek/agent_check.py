@@ -9,6 +9,7 @@ raw event stream, and then lets mih's independent oracle verify the result.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -144,16 +145,45 @@ def _run_phase(
     permission_mode: str,
 ) -> dict[str, Any]:
     evidence = host_root / "runs" / case.name / phase
+    return run_headless(
+        dsh=dsh,
+        workdir=case / "work",
+        prompt=prompt.read_text(),
+        key=key,
+        evidence=evidence,
+        host_root=host_root,
+        timeout=timeout,
+        permission_mode=permission_mode,
+        context={"scenario": case.name, "phase": phase},
+    )
+
+
+def run_headless(
+    *,
+    dsh: Path,
+    workdir: Path,
+    prompt: str,
+    key: str,
+    evidence: Path,
+    host_root: Path,
+    timeout: float,
+    permission_mode: str,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Dispatch one fresh DSH session and preserve credential-scanned evidence."""
+    if key in prompt:
+        raise AdapterError("Credential material appeared in the task prompt; dispatch was refused")
     evidence.mkdir(parents=True, exist_ok=False)
     environment = _minimal_environment(key, host_root)
+    (evidence / "prompt.txt").write_text(prompt)
     started = time.monotonic()
     try:
         child = subprocess.run(
             [str(dsh), "--profile", "headless", "--json", "--permission-mode", permission_mode,
              "--approval-policy", "never", "-"],
-            cwd=case / "work",
+            cwd=workdir,
             env=environment,
-            input=prompt.read_text(),
+            input=prompt,
             text=True,
             capture_output=True,
             timeout=timeout,
@@ -186,8 +216,7 @@ def _run_phase(
     (evidence / "response.txt").write_text(response)
     record = {
         "status": "completed",
-        "scenario": case.name,
-        "phase": phase,
+        **(context or {}),
         "session_id": session,
         "wall_seconds": elapsed,
         "usage": usage,
@@ -195,6 +224,8 @@ def _run_phase(
         "events": str(evidence / "events.jsonl"),
         "stderr": str(evidence / "stderr.txt"),
         "response": str(evidence / "response.txt"),
+        "prompt": str(evidence / "prompt.txt"),
+        "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
         "credential_scan": "no exact-key match in stdout or stderr",
     }
     _save(evidence / "host.json", record)

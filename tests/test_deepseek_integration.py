@@ -13,6 +13,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "integrations/deepseek/agent_check.py"
+TASK_RUNNER = ROOT / "integrations/deepseek/run_task.py"
 SPEC = importlib.util.spec_from_file_location("deepseek_agent_check", ADAPTER)
 deepseek = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
@@ -102,6 +103,35 @@ class DeepSeekAdapter(unittest.TestCase):
         missing.write_text("not-a-key\n")
         with self.assertRaisesRegex(deepseek.AdapterError, "no supported"):
             deepseek._read_credential(missing)
+
+    def test_generic_task_runner_keeps_fresh_session_evidence(self):
+        self.dsh.write_text(textwrap.dedent('''\
+            #!/usr/bin/env python3
+            import json, os, sys
+            if "--version" in sys.argv:
+                print("0.2.2-rc.1-fake")
+            else:
+                task = sys.stdin.read()
+                print(json.dumps({"type": "session", "sessionId": "session-fake-generic-task", "cwd": os.getcwd()}))
+                print(json.dumps({"type": "status", "usage": {"inputTokens": 7, "outputTokens": 3, "totalTokens": 10}}))
+                print(json.dumps({"type": "final", "sessionId": "session-fake-generic-task", "text": json.dumps({"task": task.strip(), "ok": True})}))
+            '''))
+        self.dsh.chmod(self.dsh.stat().st_mode | stat.S_IXUSR)
+        prompt = self.root / "prompt.txt"
+        prompt.write_text("inspect the approved run")
+        evidence = self.root / "generic-evidence"
+        child = subprocess.run(
+            [sys.executable, str(TASK_RUNNER), "--credential-file", str(self.credential),
+             "--dsh", str(self.dsh), "--workdir", str(self.root),
+             "--prompt-file", str(prompt), "--evidence", str(evidence)],
+            cwd=ROOT, text=True, capture_output=True,
+        )
+        self.assertEqual(child.returncode, 0, child.stderr)
+        result = json.loads(child.stdout)
+        self.assertEqual(result["session_id"], "session-fake-generic-task")
+        self.assertEqual(result["usage"]["totalTokens"], 10)
+        self.assertEqual(json.loads((evidence / "response.txt").read_text())["task"], prompt.read_text())
+        self.assertNotIn(self.key, "".join(p.read_text(errors="replace") for p in evidence.rglob("*") if p.is_file()))
 
 
 if __name__ == "__main__":

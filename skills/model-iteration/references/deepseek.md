@@ -25,6 +25,26 @@ Resolve `<skill-dir>` as the directory containing the active `SKILL.md`. This
 works both from a source checkout and from the Codex plugin cache; do not assume
 the user's model repository is also the harness checkout.
 
+For one explicit task against an already reviewed project, use the generic runner:
+
+```bash
+python3 <skill-dir>/../../integrations/deepseek/run_task.py \
+  --credential-file /absolute/private/deepseek-key.txt \
+  --dsh /absolute/path/to/node_modules/.bin/dsh \
+  --workdir /absolute/reviewed/project-or-controller-workdir \
+  --prompt-file /absolute/task.txt \
+  --evidence /absolute/new/evidence/act
+```
+
+`run_task.py` does not grant mih approval, budget, edit scope or promotion. Its
+prompt must name the already approved state root, exact allowed action and required
+response schema. Use a new evidence directory for every act/review attempt and a
+fresh invocation for independent review. The default is DSH `workspace-write`.
+On macOS, a task that submits mih's detached worker needs an explicit
+`--permission-mode danger-full-access` because the DSH sandbox otherwise propagates
+to the worker; make that escalation visible in the evidence and use only after the
+project contract is approved.
+
 The adapter reads the credential into memory, passes it only to DSH's environment,
 uses isolated `HOME` and `DSH_HOME`, and disables DSH telemetry. Before persisting
 stdout or stderr it rejects any stream containing an exact key match. Do not put
@@ -34,10 +54,10 @@ DSH `0.2.2-rc.1` also scrubs credential-shaped ambient variables, including
 `DEEPSEEK_API_KEY`, from its shell subprocesses; the adapter's scan is an
 additional evidence-boundary check rather than a substitute for that scrub.
 
-The adapter defaults to DSH `danger-full-access` because a detached mih worker on
+The five-case adapter defaults to DSH `danger-full-access` because a detached mih worker on
 macOS must call `ps` and launch `sandbox-exec`; DSH `workspace-write` restrictions
 are inherited by that child and leave the experiment queued. This adapter runs
-only mih's newly created synthetic fixtures, while the recorded gateway still
+only mih's newly created synthetic fixtures, while its recorded gateway still
 restricts runtime commands and the task forbids unrelated writes. This remains a
 cooperative-agent check, not hostile-code containment. `--permission-mode
 workspace-write` is available for environments where detached workers pass under

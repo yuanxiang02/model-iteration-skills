@@ -21,6 +21,7 @@ class CodexPluginPackage(unittest.TestCase):
         self.assertEqual(entry["source"], {"source": "local", "path": "."})
         self.assertTrue((ROOT / plugin["skills"] / "model-iteration/SKILL.md").is_file())
         self.assertTrue((ROOT / "integrations/deepseek/agent_check.py").is_file())
+        self.assertTrue((ROOT / "integrations/deepseek/run_task.py").is_file())
         self.assertTrue((ROOT / "skills/model-iteration/references/deepseek.md").is_file())
 
     def test_plugin_package_and_runtime_versions_match(self):
