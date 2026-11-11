@@ -6,7 +6,7 @@
 
 [![Core behavior checks](https://github.com/yuanxiang02/model-iteration-skills/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/yuanxiang02/model-iteration-skills/actions/workflows/tests.yml)
 
-> **v0.4.0，本地受控迭代。** 核心 skill 引导 Codex，`mih` 执行内核落实实验门禁；现已通过宿主驱动的 agent 验证链路检查真实调用与结果。调研、查新和多 agent review 是可选辅助模块。参见[控制机制](docs/controllability.md)与[平台边界](#支持平台与边界)。
+> **v0.5.0，本地优先的 Codex 插件与受控迭代。** 核心 skill 引导 Codex，`mih` 执行内核落实实验门禁并导入逐项校验哈希的 agent 轨迹。调研、查新和多 agent review 是可选辅助模块。参见[控制机制](docs/controllability.md)与[平台边界](#支持平台与边界)。
 
 **开发预览：基于 dsh CLI 的文件对齐与探索树。** `mih explore` 读取实际项目文件，
 生成代码与数据边界草案供用户讨论，并从 Git 历史及有来源的指标记录建立节点。
@@ -21,6 +21,25 @@
 `explore import-trajectory` 进入归档层。[`subspace_cem` 真实 pilot](docs/real-agent-trajectory.md)
 保留了一次失败启动、修复、12 个运行、聚合 verdict 和停止决策，但不会把历史 GPU 记录
 冒充成 mih 已经重跑并验收的 trusted run。
+
+### 作为 Codex 插件安装
+
+本仓库现在是自包含的 Codex 插件 marketplace；本地 checkout 不需要 Python
+打包、API key、远端算力或托管服务即可安装：
+
+```bash
+codex plugin marketplace add /absolute/path/to/model-iteration-skills
+codex plugin add model-iteration-harness@mih-open-source
+```
+
+新开 Codex session 后使用 `$model-iteration`。skill 会通过插件缓存内的
+`skills/model-iteration/scripts/mih.py` 调用 runtime，状态和实验输出仍留在本地。
+本机安装、缓存调用及新 session 发现验证见
+[Codex 插件验证报告](docs/validation/codex-plugin-2026-11-11.md)。
+
+核心 runtime 不绑定任何模型 API。若明确选择 DeepSeek，可使用可选的
+[DSH headless 适配器](skills/model-iteration/references/deepseek.md)执行原生 agent
+验证任务；它保留 provider/session 证据，并且失败时不会回退到 Codex。
 
 ## 把哪些事情控制住
 

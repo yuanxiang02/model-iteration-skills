@@ -50,6 +50,18 @@ provider nor calls an LLM API. Current supported transports are host-attested
 invoke an agent and preserve its returned ID/response; inventing a session ID is
 not validation. The local commands do not authenticate the host's attestation.
 
+An optional thin adapter at `integrations/deepseek/agent_check.py` supplies that
+host dispatch through DeepSeek Harness headless. It reads a credential file
+transiently, launches DSH with an isolated home and disabled telemetry, scans raw
+stdout/stderr for the exact key before evidence writes, and records session IDs,
+JSONL events, final responses, wall time and cumulative usage. `mih agent-check`
+itself remains provider-free, and the adapter has no Codex fallback. See the
+[DeepSeek skill reference](../skills/model-iteration/references/deepseek.md).
+The synthetic adapter defaults to DSH `danger-full-access` because the macOS
+workspace sandbox otherwise propagates to mih's detached worker and blocks its
+process-identity check; the recorded mih gateway remains the validation command
+boundary. This is explicitly not a hostile-agent security boundary.
+
 Preparation requires this source checkout (including `skills/`), normally with
 the runtime installed editably. `start` writes a task; it does not itself launch
 an agent. Host dispatch and capture of the actual returned response remain explicit.

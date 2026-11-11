@@ -1,0 +1,20 @@
+{
+  "name": "mih-open-source",
+  "interface": {
+    "displayName": "Model Iteration Harness (local/open source)"
+  },
+  "plugins": [
+    {
+      "name": "model-iteration-harness",
+      "source": {
+        "source": "local",
+        "path": "."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

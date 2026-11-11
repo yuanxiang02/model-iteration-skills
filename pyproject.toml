@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "model-iteration-harness"
-version = "0.4.0"
+version = "0.5.0"
 description = "Controlled model iteration with reviewed boundaries, bounded exploration and fixed evaluation"
 readme = "README.md"
 requires-python = ">=3.9"

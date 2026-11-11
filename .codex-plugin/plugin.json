@@ -1,0 +1,40 @@
+{
+  "name": "model-iteration-harness",
+  "version": "0.5.0",
+  "description": "Run controlled, evidence-backed model iteration and inspect real agent experiment trajectories from Codex.",
+  "author": {
+    "name": "Model Iteration Harness contributors"
+  },
+  "homepage": "https://github.com/yuanxiang02/model-iteration-skills",
+  "repository": "https://github.com/yuanxiang02/model-iteration-skills",
+  "license": "MIT",
+  "keywords": [
+    "model iteration",
+    "experiments",
+    "agent trajectory",
+    "research tree",
+    "reproducibility",
+    "evaluation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Model Iteration Harness",
+    "shortDescription": "Control experiments and review agent trajectories",
+    "longDescription": "Use a local-first harness to freeze model experiment boundaries, run bounded candidates, retain failures and evidence, import real agent/RSI trajectories, and review research trees without requiring a hosted backend.",
+    "developerName": "Model Iteration Harness contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/yuanxiang02/model-iteration-skills",
+    "defaultPrompt": [
+      "Use Model Iteration Harness to inspect this repository and draft a controlled experiment boundary",
+      "Import this repository's agent experiment records into a reviewable trajectory tree",
+      "Review the current model-iteration tree and identify the next evidence-backed branch"
+    ],
+    "brandColor": "#607A52",
+    "screenshots": []
+  }
+}

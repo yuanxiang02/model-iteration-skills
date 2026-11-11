@@ -9,6 +9,18 @@ The purpose is controllable model iteration. Keep the existing trainer and put
 `mih` in charge of experiment state and gates. Literature search, novelty checks
 and multi-agent review are optional aids; none is a prerequisite for this loop.
 
+Use the runtime bundled with this skill rather than assuming a globally installed
+`mih`. Resolve `<skill-dir>` as the directory containing this `SKILL.md`, then use
+this prefix for every harness command in the session:
+
+```bash
+python3 <skill-dir>/scripts/mih.py --state /absolute/controller/state
+```
+
+Keep controller state outside the model repository. The launcher is dependency-free
+and works from a Codex plugin cache or a source checkout. Do not install packages,
+edit `PYTHONPATH`, or connect to a hosted/GPU backend merely to start inspection.
+
 ## Establish the control contract
 
 Inspect relevant training/evaluation code and the actual environment. For an
@@ -62,6 +74,17 @@ Read [the runtime handoff](references/runtime.md) for commands and
 [control semantics](references/controls.md) for budgets, pause/resume and limits.
 The runtime is required to execute this controlled loop. If it is unavailable,
 prepare the specification but do not present ordinary shell training as equivalent.
+
+When the operator explicitly chooses DeepSeek for native agent execution, read
+[the DeepSeek host adapter](references/deepseek.md). Keep `mih` provider-free,
+pass the credential only to the external DSH process, and do not silently fall
+back to Codex or another model when dispatch fails.
+
+For an existing agent/research history, use `explore import-trajectory` with a
+privacy-reviewed, hash-pinned bundle. Treat imported nodes as archival evidence;
+only `explore attach-run` creates mih runtime-trusted nodes. Never copy raw private
+agent conversations, credentials, tokens, cookies, or unreviewed environment data
+into a trajectory bundle.
 
 ## Preserve operator control
 

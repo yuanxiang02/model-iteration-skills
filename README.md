@@ -6,7 +6,7 @@ Keep agent-driven model iteration within reviewed edit boundaries, fixed evaluat
 
 [![Core behavior checks](https://github.com/yuanxiang02/model-iteration-skills/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/yuanxiang02/model-iteration-skills/actions/workflows/tests.yml)
 
-> **v0.4.0 — controlled local iteration.** The main skill guides Codex; the `mih` runtime enforces experiment gates. A host-driven agent validation loop now checks actual runtime calls and outcomes. Research, novelty and multi-agent review are optional addons. See [control semantics](docs/controllability.md) and [platform limits](#supported-platforms-and-limits).
+> **v0.5.0 — local-first Codex plugin and controlled iteration.** The main skill guides Codex; the `mih` runtime enforces experiment gates and imports hash-pinned agent trajectories. Research, novelty and multi-agent review are optional addons. See [control semantics](docs/controllability.md) and [platform limits](#supported-platforms-and-limits).
 
 ## What remains under your control
 
@@ -87,6 +87,29 @@ hash-pinned `explore import-trajectory` archival path. The
 repair, 12 runs, aggregate verdict and stop decision without claiming that mih
 reran the historical GPU work.
 
+### Install as a Codex plugin
+
+The repository is a self-contained Codex plugin marketplace. A local checkout can
+be installed without Python packaging, API keys, remote compute, or a hosted
+service:
+
+```bash
+codex plugin marketplace add /absolute/path/to/model-iteration-skills
+codex plugin add model-iteration-harness@mih-open-source
+```
+
+Start a new Codex session and ask it to use `$model-iteration`. The skill invokes
+the plugin-cached runtime through `skills/model-iteration/scripts/mih.py`; controller
+state and experiment outputs remain local. Remove the test installation with:
+
+```bash
+codex plugin remove model-iteration-harness@mih-open-source
+codex plugin marketplace remove mih-open-source
+```
+
+The exact local installation and fresh-session smoke evidence is recorded in the
+[Codex plugin validation report](docs/validation/codex-plugin-2026-11-11.md).
+
 Coding agents can change training code, but a useful experiment also needs a stable evaluator, attributable outputs, recoverable execution, and an explicit acceptance decision.
 
 The execution runtime manages that experiment lifecycle around your existing training program:
@@ -98,7 +121,7 @@ The execution runtime manages that experiment lifecycle around your existing tra
 - Preserve patches, logs, artifacts, failures, and accepted/rejected/inconclusive decisions.
 - Apply a candidate patch only through a separate explicit promotion action.
 
-The core does not implement a new trainer or require an LLM API key. Codex or another coding agent can call it through a shell tool, following the bundled skills. A built-in model API client and automatic agent wakeups are not implemented.
+The core does not implement a new trainer or require an LLM API key. Codex or another coding agent can call it through a shell tool, following the bundled skills. A built-in model API client and automatic agent wakeups are not implemented. For users who explicitly choose DeepSeek, the optional [DSH headless adapter](skills/model-iteration/references/deepseek.md) runs native agent-validation tasks outside the core, retains provider/session evidence, and never falls back to Codex.
 
 ## Three-stage workflow
 

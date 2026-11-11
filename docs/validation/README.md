@@ -21,6 +21,11 @@ hashes. Host-attested session identity is not authenticated model identity; all
 approvals are simulated and tasks export synthetic predictions, without training
 a real model. CI replay tests remain distinct from this native-agent run.
 
+The v0.5.0 [DeepSeek native-agent validation](agent-check-deepseek-2026-11-11.md)
+runs the same five gates through six fresh DeepSeek Harness headless sessions. It
+records two preserved forward failures and a final 24-call independent-oracle pass;
+the mih core remains provider-free and no Codex fallback is used.
+
 A subsequent **user-approved v0.2.0 project round** completed the review -> iteration -> scoring -> acceptance flow: 568-parameter CPU GRU, five paired seeds, NLL 2.07394 -> 1.73714, about 44 seconds and 271 MiB peak child RSS. The accepted patch passed promotion readiness and was not applied. Exact observations are in [reviewed-round-2026-11-02.json](reviewed-round-2026-11-02.json). It repeats the tiny development fixture and is not independent confirmation of a model gain.
 
 | Task | Baseline → candidate | Development decision | Total wall time | Peak child RSS |
