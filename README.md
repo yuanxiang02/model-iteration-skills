@@ -397,7 +397,7 @@ end-to-end LLM behavior remains unvalidated. The core requires none of these add
 python -m unittest discover -s tests -v
 ```
 
-The suite contains **84 behavior tests**. CI runs on Linux/Python 3.9 and 3.12 and macOS/Python 3.12. Tests cover source/evaluator protection, prediction validity, timeouts/cancellation, recovery, reviewed project gates, policy drift, explicit promotion, candidate/active limits, pause/resume, total timeouts, skill installation, packet checks, the agent-validation oracle, and exploration boundaries, evidence, branch controls and CLI dispatch. CI agent sessions are explicit replay fixtures; they cannot claim a real-agent pass.
+The suite contains **95 behavior tests**. CI runs on Linux/Python 3.9 and 3.12 and macOS/Python 3.12. Tests cover source/evaluator protection, prediction validity, timeouts/cancellation, recovery, reviewed project gates, policy drift, explicit promotion, candidate/active limits, pause/resume, total timeouts, skill installation, packet checks, the agent-validation oracle, DeepSeek evidence handling, and exploration boundaries, evidence, branch controls and CLI dispatch. CI agent sessions are explicit replay fixtures; they cannot claim a real-agent pass.
 
 ### Real agent verification
 
@@ -419,6 +419,7 @@ agent-behavior check, not real model training, general reliability certification
 or proof of hostile-code isolation. Research/review addon behavior remains unvalidated.
 
 - [Model smoke results](docs/validation/README.md)
+- [DeepSeek-driven tiny NLP closure](docs/validation/deepseek-nlp-2026-11-12.md)
 - [Three-stage workflow checks](docs/validation/project-workflow.md)
 - [Runtime and contract reference](docs/runtime.md)
 - [Project onboarding guide](docs/project-workflow.md)

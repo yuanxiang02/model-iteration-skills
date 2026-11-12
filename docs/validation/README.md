@@ -26,6 +26,12 @@ runs the same five gates through six fresh DeepSeek Harness headless sessions. I
 records two preserved forward failures and a final 24-call independent-oracle pass;
 the mih core remains provider-free and no Codex fallback is used.
 
+A follow-up [DeepSeek-driven tiny NLP closure](deepseek-nlp-2026-11-12.md) uses
+three fresh DeepSeek sessions to reserve, run and independently review one real
+Mac CPU PyTorch experiment, then attaches the accepted development run to a
+reviewed research tree. It discloses a strict-JSON response deviation, retains the
+tiny-fixture claim boundary and does not apply the promotion.
+
 A subsequent **user-approved v0.2.0 project round** completed the review -> iteration -> scoring -> acceptance flow: 568-parameter CPU GRU, five paired seeds, NLL 2.07394 -> 1.73714, about 44 seconds and 271 MiB peak child RSS. The accepted patch passed promotion readiness and was not applied. Exact observations are in [reviewed-round-2026-11-02.json](reviewed-round-2026-11-02.json). It repeats the tiny development fixture and is not independent confirmation of a model gain.
 
 | Task | Baseline → candidate | Development decision | Total wall time | Peak child RSS |
