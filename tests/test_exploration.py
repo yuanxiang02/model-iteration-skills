@@ -15,6 +15,9 @@ from mih import core, discovery, exploration as e
 from mih.explorer_web import dispatch
 from mih.storage import HarnessError, Store, load, save
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from support import requires_symlinks  # noqa: E402
+
 
 class ResearchTree(unittest.TestCase):
     def setUp(self):
@@ -230,6 +233,7 @@ class ResearchTree(unittest.TestCase):
         with self.assertRaisesRegex(HarnessError, "Fixed|fixed"):
             e.record(self.store, self.identifier, self.parent, result)
 
+    @requires_symlinks
     def test_credentials_and_symlink_targets_do_not_enter_packets(self):
         (self.repo / ".env").write_text("SECRET=synthetic-never-export-this\n")
         self.git("add", "-f", ".env")

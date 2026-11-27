@@ -13,10 +13,21 @@ jobs:
         include:
           - os: ubuntu-22.04
             python: '3.9'
+            suite: full
           - os: ubuntu-24.04
             python: '3.12'
+            suite: full
           - os: macos-15
             python: '3.12'
+            suite: full
+          # Windows coverage is deliberately narrower: several lifecycle checks
+          # depend on POSIX process groups and file sharing (see
+          # docs/platform-support.md). This job still guards the things that
+          # broke silently before: the package importing at all, the platform
+          # primitives, and the DSH tool contracts.
+          - os: windows-latest
+            python: '3.12'
+            suite: windows
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -24,4 +35,15 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -e .
-      - run: python -m unittest discover -s tests -v
+      - name: Import the runtime (catches POSIX-only imports)
+        if: matrix.suite == 'windows'
+        run: python -c "import mih, mih.core, mih.worker, mih.storage, mih.dsh; print('imports ok')"
+      - name: Full suite
+        if: matrix.suite == 'full'
+        run: python -m unittest discover -s tests -v
+      - name: Platform primitives
+        if: matrix.suite == 'windows'
+        run: python -m unittest discover -s tests -p "test_platform.py" -v
+      - name: DSH tool contracts
+        if: matrix.suite == 'windows'
+        run: python -m unittest discover -s tests -p "test_dsh_tools.py" -v

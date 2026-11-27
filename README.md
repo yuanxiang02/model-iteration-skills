@@ -110,6 +110,27 @@ codex plugin marketplace remove mih-open-source
 The exact local installation and fresh-session smoke evidence is recorded in the
 [Codex plugin validation report](docs/validation/codex-plugin-2026-11-11.md).
 
+### Drive the harness from DSH
+
+The repository ships a harness-level DSH tool surface instead of the earlier
+research-only plugin. `src/mih/dsh.py` owns the tool contracts and
+`src/mih/dsh_plugin.mjs` is a thin forwarder, so the plugin carries no policy and
+the schemas cannot drift. Ten tools cover the lifecycle — project inspection,
+boundary drafting, project status/controls, candidate iteration, experiment
+status/report/wait/cancel and promotion — while boundary approval, operator
+pause/resume and the low-level create path stay CLI-only for the human operator.
+See [the DSH harness guide](docs/dsh-harness.md).
+
+```js
+// dsh plugin config
+{ "python": "/abs/path/python", "moduleRoot": "/abs/path/src", "state": "/abs/path/state" }
+```
+
+The runtime now imports and runs on Windows as well as POSIX; the exact
+primitive mappings, the evidence fields Windows cannot report, and the
+symlink-dependent tests that are skipped there are listed in
+[platform support](docs/platform-support.md).
+
 Coding agents can change training code, but a useful experiment also needs a stable evaluator, attributable outputs, recoverable execution, and an explicit acceptance decision.
 
 The execution runtime manages that experiment lifecycle around your existing training program:

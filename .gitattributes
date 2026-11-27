@@ -1,0 +1,14 @@
+# Keep one canonical byte sequence for every checkout.
+#
+# The harness pins third-party snapshots by content hash (see
+# tests/test_skills.py and third_party/sources.json). A `core.autocrlf=true`
+# checkout rewrites CRLF into those files and every pinned digest fails, so
+# snapshots are treated as binary: git never converts them.
+* text=auto eol=lf
+
+third_party/** -text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.zip binary
