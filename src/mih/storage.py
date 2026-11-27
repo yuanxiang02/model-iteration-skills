@@ -1,14 +1,14 @@
-"""Atomic evidence files, advisory locks, and process identities on POSIX."""
+"""Atomic evidence files, advisory locks, and process identities across platforms."""
 
 import contextlib
 import datetime
-import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
-import subprocess
 import tempfile
+
+from . import _platform
 
 
 class HarnessError(Exception):
@@ -43,11 +43,12 @@ def save(path, value):
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
-        dirfd = os.open(str(path.parent), os.O_RDONLY)
-        try:
-            os.fsync(dirfd)
-        finally:
-            os.close(dirfd)
+        if _platform.POSIX:  # directory fsync is not available on Windows
+            dirfd = os.open(str(path.parent), os.O_RDONLY)
+            try:
+                os.fsync(dirfd)
+            finally:
+                os.close(dirfd)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -58,26 +59,15 @@ def locked(path, blocking=True):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a+") as handle:
-        flags = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
-        fcntl.flock(handle, flags)
+        _platform.lock(handle, blocking)
         try:
             yield
         finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
+            _platform.unlock(handle)
 
 
 def identity(pid):
-    if not pid:
-        return None
-    process = subprocess.run(
-        ["ps", "-p", str(int(pid)), "-o", "lstart=", "-o", "stat="],
-        capture_output=True, text=True,
-    )
-    text = process.stdout.strip()
-    if process.returncode or not text or text.split()[-1].startswith("Z"):
-        return None
-    # Scheduling state changes (S/R/...) are not part of process identity.
-    return " ".join(text.split()[:-1])
+    return _platform.process_identity(pid)
 
 
 def alive(record):

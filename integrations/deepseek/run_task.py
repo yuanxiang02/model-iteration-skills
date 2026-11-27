@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from agent_check import AdapterError, _read_credential, run_headless
+from agent_check import AdapterError, _read_credential, run_headless, script_argv
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> None:
         host_root = (args.host_root or evidence.parent).expanduser().resolve()
         if not dsh.is_file() or not workdir.is_dir() or not prompt_file.is_file():
             raise AdapterError("DSH, work directory, or prompt file is missing")
-        version = subprocess.run([str(dsh), "--version"], text=True, capture_output=True)
+        version = subprocess.run(script_argv(dsh, "--version"), text=True, capture_output=True)
         if version.returncode:
             raise AdapterError("Could not read DSH version")
         key = _read_credential(args.credential_file.expanduser().resolve())

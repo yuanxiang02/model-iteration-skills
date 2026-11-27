@@ -4,12 +4,11 @@ import argparse
 import math
 import os
 from pathlib import Path
-import resource
-import signal
 import subprocess
 import sys
 import time
 
+from . import _platform
 from .acceptance import decide
 from .core import verify
 from .sandbox import environment, expand, wrap
@@ -23,17 +22,13 @@ class Stopped(Exception):
 
 
 def stop_process(process):
-    try:
-        os.killpg(process.pid, signal.SIGTERM)
-    except ProcessLookupError:
+    if process.poll() is not None:
         return
+    _platform.terminate_tree(process)
     try:
         process.wait(timeout=1)
     except subprocess.TimeoutExpired:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+        _platform.terminate_tree(process, force=True)
         process.wait(timeout=5)
 
 
@@ -62,13 +57,9 @@ def execute(store, experiment_id, argv, cwd, log, temporary, seed, timeout, exec
     protected = [store.runs, contract["evaluation"]["reference"], contract["evaluation"]["evaluator"], Path(contract["source"]["repository"]) / ".git", Path(cwd) / ".git"]
     command = wrap(argv, execution["isolation"], [cwd, output, temporary], protected) if sandboxed else argv
 
-    def limits():
-        resource.setrlimit(resource.RLIMIT_CPU, (timeout + 1, timeout + 2))
-        resource.setrlimit(resource.RLIMIT_FSIZE, (execution["max_artifact_bytes"], execution["max_artifact_bytes"]))
-
     process = None
     started = time.monotonic()
-    usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    usage_before = _platform.child_usage()
     # Candidate stdout is untrusted. Capture through a preopened descriptor in
     # its writable scratch area, then archive that descriptor into trusted
     # evidence after execution. Never reopen a candidate-selected log path.
@@ -77,7 +68,9 @@ def execute(store, experiment_id, argv, cwd, log, temporary, seed, timeout, exec
         with os.fdopen(os.dup(log_fd), "wb") as handle:
             process = subprocess.Popen(
                 command, cwd=str(cwd), env=environment(temporary, seed, contract["training"].get("python_paths", []) if sandboxed else ()), stdin=subprocess.DEVNULL,
-                stdout=handle, stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=limits,
+                stdout=handle, stderr=subprocess.STDOUT,
+                preexec_fn=_platform.preexec_limits(timeout, execution["max_artifact_bytes"]),
+                **_platform.spawn_kwargs(),
             )
             store.update(experiment_id, child={"pid": process.pid, "identity": identity(process.pid)}, active_command=argv)
             while process.poll() is None:
@@ -107,15 +100,15 @@ def execute(store, experiment_id, argv, cwd, log, temporary, seed, timeout, exec
             if process.returncode:
                 raise HarnessError("Command exited with code %s; log: %s" % (process.returncode, log))
             # Kill descendants left in the command's process group even on successful exit.
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
-        usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-        rss_bytes = usage.ru_maxrss if sys.platform == "darwin" else usage.ru_maxrss * 1024
+            _platform.terminate_tree(process)
+        usage = _platform.child_usage()
+        cpu_seconds = None
+        if usage is not None and usage_before is not None:
+            cpu_seconds = usage["cpu_seconds"] - usage_before["cpu_seconds"]
         return {"argv": argv, "exit_code": process.returncode, "wall_seconds": time.monotonic() - started,
-                "cpu_seconds": usage.ru_utime + usage.ru_stime - usage_before.ru_utime - usage_before.ru_stime,
-                "children_peak_rss_bytes_so_far": rss_bytes, "log": str(log)}
+                "cpu_seconds": cpu_seconds,
+                "children_peak_rss_bytes_so_far": None if usage is None else usage["peak_rss_bytes"],
+                "log": str(log)}
     finally:
         if process is not None and process.poll() is None:
             stop_process(process)

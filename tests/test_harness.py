@@ -4,17 +4,19 @@ import json
 import os
 from pathlib import Path
 import platform
-import signal
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
 
-from mih import core
+from mih import _platform, core
 from mih.acceptance import decide
 from mih.scoring import score
 from mih.storage import HarnessError, Store, alive, load, save
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from support import requires_symlinks  # noqa: E402
 
 
 TRAIN = '''import json,sys,time
@@ -131,6 +133,7 @@ class HarnessLifecycle(unittest.TestCase):
         self.assertNotIn("acceptance", result)
         self.assertTrue((self.store.run(experiment_id) / "baseline-0-score.log").is_file())
 
+    @requires_symlinks
     def test_prediction_symlink_is_rejected(self):
         code = 'import pathlib,sys\npathlib.Path(sys.argv[2]).symlink_to(sys.argv[1])\n'
         experiment_id, _ = self.prepare(code)
@@ -194,7 +197,7 @@ class HarnessLifecycle(unittest.TestCase):
         self.assertEqual(state.get("role"), "candidate", state)
         child = state["child"]
         try:
-            os.kill(state["worker"]["pid"], signal.SIGKILL)
+            _platform.terminate_pid(state["worker"]["pid"], force=True)
             deadline = time.monotonic() + 3
             while alive(state["worker"]) and time.monotonic() < deadline:
                 time.sleep(.05)
@@ -204,7 +207,7 @@ class HarnessLifecycle(unittest.TestCase):
             self.assertEqual(core.submit(self.store, experiment_id)["status"], "orphaned")
         finally:
             if alive(child):
-                os.killpg(child["pid"], signal.SIGTERM)
+                _platform.terminate_pid(child["pid"])
 
     @unittest.skipUnless(platform.system() == "Darwin", "macOS sandbox behavior")
     def test_runtime_reference_read_is_blocked(self):

@@ -25,6 +25,10 @@ SOURCE = REPOSITORY / "src"
 SCENARIOS = ("iteration", "awaiting_review", "scope_guard", "budget_exhausted", "paused")
 SESSION_ID = re.compile(r"session-[A-Za-z0-9-]+")
 
+if str(SOURCE) not in sys.path:
+    sys.path.insert(0, str(SOURCE))
+from mih._platform import script_argv  # noqa: E402
+
 
 class AdapterError(RuntimeError):
     pass
@@ -179,8 +183,8 @@ def run_headless(
     started = time.monotonic()
     try:
         child = subprocess.run(
-            [str(dsh), "--profile", "headless", "--json", "--permission-mode", permission_mode,
-             "--approval-policy", "never", "-"],
+            script_argv(dsh, "--profile", "headless", "--json", "--permission-mode", permission_mode,
+                        "--approval-policy", "never", "-"),
             cwd=workdir,
             env=environment,
             input=prompt,
@@ -242,7 +246,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if len(set(scenarios)) != len(scenarios):
         raise AdapterError("Duplicate scenarios are not allowed")
 
-    version_child = subprocess.run([str(dsh), "--version"], text=True, capture_output=True)
+    version_child = subprocess.run(script_argv(dsh, "--version"), text=True, capture_output=True)
     if version_child.returncode:
         raise AdapterError("Could not read DSH version")
     _mih("prepare", str(output), *sum((["--scenario", name] for name in scenarios), []))

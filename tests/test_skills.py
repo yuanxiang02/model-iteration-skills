@@ -4,11 +4,15 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from support import requires_symlinks  # noqa: E402
 
 
 def module(name, path):
@@ -112,6 +116,7 @@ class SkillTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "evidence hash mismatch"):
             packet.check(self.run, request_only=True)
 
+    @requires_symlinks
     def test_symlink_escape_is_rejected(self):
         result = self.result()
         outside = self.root / "outside.txt"

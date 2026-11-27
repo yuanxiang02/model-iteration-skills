@@ -9,7 +9,7 @@ import threading
 import time
 import uuid
 
-from . import scoring
+from . import _platform, scoring
 from .sandbox import resolve_mode
 from .storage import HarnessError, alive, digest, load, locked, now, save
 
@@ -180,7 +180,7 @@ def create(store, config_path, patch_path=None, factors=None):
         "reference": digest(trusted / "reference.jsonl"),
         "evaluator": digest(trusted / "evaluator.py"), "inputs": digest(inputs),
         "python": {"executable": sys.executable, "version": sys.version},
-        "system": os.uname().sysname + " " + os.uname().release,
+        "system": _platform.system_label(),
     }
     if project_context:
         evidence["project"] = digest(run / "project.json")
