@@ -62,12 +62,17 @@ Two consequences are recorded rather than hidden:
 * **No enforced sandbox on Windows.** `sandbox.py` uses the Linux backend; on
   Windows the runtime falls back to the documented weaker boundary.
 * **Remaining Windows-only failures** (not gated, tracked for follow-up):
-  `test_controls` pause/cancel-during-acceptance, `test_cli_can_reconnect_without_parent_conversation`,
+  `test_controls` (pause/resume budget, cancellation during acceptance, pause
+  draining a running job), `test_end_to_end_background_idempotence_and_explicit_promotion`,
   `test_native_case_records_events_usage_and_oracle_result` and
   `test_installed_bundle_runs_without_checkout_and_preserves_existing_skills`.
   They share the same root cause family: POSIX process-group and file-sharing
   semantics. Linux CI stays green; do not treat a Windows run as a release gate
   until they are resolved.
+
+Latest measured state: Linux (WSL Ubuntu, Python 3.12) **119 tests OK, 2
+skipped**; Windows 11 (Python 3.12) **107 of 119 pass, 6 skipped**, with the 6
+failures above.
 
 
 Nothing above weakens a *check*; it records which checks are unenforceable on a
