@@ -124,7 +124,13 @@ class ScriptArgvTests(unittest.TestCase):
     def test_argv_actually_runs(self):
         with tempfile.TemporaryDirectory(prefix="mih-argv-") as directory:
             script = Path(directory) / "probe.py"
-            script.write_text("import sys\nprint('argv-ok', sys.argv[1])\n", encoding="utf-8")
+            script.write_text(
+                "#!/usr/bin/env python3\nimport sys\nprint('argv-ok', sys.argv[1])\n",
+                encoding="utf-8",
+            )
+            if not _platform.WINDOWS:
+                # POSIX needs an executable bit (and the shebang above) to exec directly.
+                script.chmod(0o755)
             child = subprocess.run(
                 _platform.script_argv(script, "x"), capture_output=True, text=True, timeout=60
             )

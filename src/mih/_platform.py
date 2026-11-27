@@ -172,12 +172,19 @@ def child_usage():
     return {"cpu_seconds": usage.ru_utime + usage.ru_stime, "peak_rss_bytes": peak}
 
 
-def terminate_pid(pid, force=False):
-    """Terminate a process tree by pid, without a ``Popen`` handle."""
+def terminate_pid(pid, force=False, tree=True):
+    """Terminate a pid, and by default the whole tree below it.
+
+    ``tree=False`` stops only that process, which is what a POSIX ``killpg`` of a
+    detached worker does when its children live in their own session. Windows
+    needs an explicit choice because ``taskkill /T`` always includes descendants.
+    """
     if not pid:
         return
     if WINDOWS:  # pragma: no cover - Windows only
-        command = ["taskkill", "/PID", str(int(pid)), "/T"]
+        command = ["taskkill", "/PID", str(int(pid))]
+        if tree:
+            command.append("/T")
         if force:
             command.append("/F")
         try:
@@ -186,7 +193,10 @@ def terminate_pid(pid, force=False):
             pass
         return
     try:  # pragma: no cover - POSIX only
-        os.killpg(int(pid), signal.SIGKILL if force else signal.SIGTERM)
+        if tree:
+            os.killpg(int(pid), signal.SIGKILL if force else signal.SIGTERM)
+        else:
+            os.kill(int(pid), signal.SIGKILL if force else signal.SIGTERM)
     except (ProcessLookupError, PermissionError):
         pass
 

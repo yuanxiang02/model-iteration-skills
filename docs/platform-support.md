@@ -48,12 +48,27 @@ Two consequences are recorded rather than hidden:
   `SeCreateSymbolicLinkPrivilege` (no administrator, no Developer Mode). The
   fixture cannot be built there, so `tests/support.py` skips with an explicit
   reason instead of failing. On Linux CI the same tests run unchanged.
+* **Orphan recovery is POSIX-only.** `test_worker_crash_does_not_duplicate_a_live_child`
+  kills the worker while the candidate keeps running and expects the experiment
+  to be reconciled as `orphaned`. On Windows the orphaned child still holds the
+  `command.log` handle, so archiving that log fails with `WinError 32`
+  (sharing violation) and the attempt degrades to `failed`. Faithful support
+  needs a file-sharing/retry policy for log archival, not a test tweak, so the
+  test is skipped there instead of being made to pass artificially.
 * **Process-tree cancellation** uses `taskkill /T`. It is correct but coarser
   than process groups: a grandchild that detaches from the tree can survive.
   The POSIX path remains the strong-isolation target described in
   `docs/architecture.md`.
 * **No enforced sandbox on Windows.** `sandbox.py` uses the Linux backend; on
   Windows the runtime falls back to the documented weaker boundary.
+* **Remaining Windows-only failures** (not gated, tracked for follow-up):
+  `test_controls` pause/cancel-during-acceptance, `test_cli_can_reconnect_without_parent_conversation`,
+  `test_native_case_records_events_usage_and_oracle_result` and
+  `test_installed_bundle_runs_without_checkout_and_preserves_existing_skills`.
+  They share the same root cause family: POSIX process-group and file-sharing
+  semantics. Linux CI stays green; do not treat a Windows run as a release gate
+  until they are resolved.
+
 
 Nothing above weakens a *check*; it records which checks are unenforceable on a
 given host. Do not read this as production isolation on Windows.

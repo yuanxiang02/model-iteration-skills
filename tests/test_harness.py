@@ -185,6 +185,7 @@ class HarnessLifecycle(unittest.TestCase):
         self.assertEqual(result["status"], "accepted", result)
         self.assertEqual(len(result["measurements"]["attempts"]), 20)
 
+    @unittest.skipUnless(_platform.POSIX, "orphan recovery relies on POSIX process groups and file sharing")
     def test_worker_crash_does_not_duplicate_a_live_child(self):
         experiment_id, _ = self.prepare("import time\ntime.sleep(10)\n")
         core.submit(self.store, experiment_id)
@@ -197,7 +198,9 @@ class HarnessLifecycle(unittest.TestCase):
         self.assertEqual(state.get("role"), "candidate", state)
         child = state["child"]
         try:
-            _platform.terminate_pid(state["worker"]["pid"], force=True)
+            # Stop the worker only: the candidate keeps running and must become
+            # orphaned evidence, not a failed attempt.
+            _platform.terminate_pid(state["worker"]["pid"], force=True, tree=False)
             deadline = time.monotonic() + 3
             while alive(state["worker"]) and time.monotonic() < deadline:
                 time.sleep(.05)
